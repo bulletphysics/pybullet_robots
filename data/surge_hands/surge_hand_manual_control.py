@@ -6,13 +6,13 @@ import time
 
 import pybullet_data
 
-use_real_hardware = False
+use_real_hardware =  False
 if use_real_hardware:
   import serial
 
   # Configure the serial connection
   ser = serial.Serial(
-      port='COM8', #/dev/ttyUSB0',    # Change this if your device is on a different port
+      port='/dev/tty.usbserial-AU05J61K', #/dev/ttyUSB0',"COM8",    # Change this if your device is on a different port
       baudrate=115200,        # Set the baud rate
       bytesize=serial.EIGHTBITS,
       parity=serial.PARITY_NONE,
@@ -57,6 +57,14 @@ joint_name_to_hw[b"Ring_MCP_Joint"]='R'
 joint_name_to_hw[b"Pinky_MCP_Joint"]='P'
 joint_name_to_hw[b"Metacarpal_Joint"]='X'
 joint_name_to_hw[b"Thumb_Joint"]='T'
+
+joint_name_to_hw_scaling={}
+joint_name_to_hw_scaling[b"Index_MCP_Joint"]=1.0
+joint_name_to_hw_scaling[b"Middle_MCP_Joint"]=1.0
+joint_name_to_hw_scaling[b"Ring_MCP_Joint"]=1.0
+joint_name_to_hw_scaling[b"Pinky_MCP_Joint"]=1.0
+joint_name_to_hw_scaling[b"Metacarpal_Joint"]=0.25
+joint_name_to_hw_scaling[b"Thumb_Joint"]=0.25
 
 
 joint_index_to_name={}
@@ -148,7 +156,7 @@ while (1):
       if use_real_hardware:
         # Send the command
         #TODO: do we need to a scaling factor for the thumb for real hardware?
-        command = "AT+SJA="+str(deg)+","+joint_name_to_hw[joint_index_to_name[i]]+"\r\n"  # \r\n is typically required for AT commands
+        command = "AT+SJA="+str(deg*joint_name_to_hw_scaling[joint_index_to_name[i]])+","+joint_name_to_hw[joint_index_to_name[i]]+"\r\n"  # \r\n is typically required for AT commands
         
         #print("command=",command)
         ser.write(command.encode())  # Encode the string and send it
