@@ -6,7 +6,7 @@ import time
 
 import pybullet_data
 
-use_real_hardware =  False
+use_real_hardware = True 
 if use_real_hardware:
   import serial
 
@@ -27,7 +27,6 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 #collision tweak
 #p.setPhysicsEngineParameter(enableSAT=1)
-
 p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=128, cameraPitch=-28, cameraTargetPosition=[-0.5,-0.4,-0.3])
 
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
@@ -43,7 +42,6 @@ robot = p.loadURDF("surge_v13_hand_right_textured_pybullet.urdf", useMaximalCoor
 #robot = p.loadURDF("surge_v13_hand_right_pybullet.urdf", useMaximalCoordinates=False, useFixedBase=True, flags=flags)
 
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
-gravId = p.addUserDebugParameter("gravity", -10, 10, -10)
 jointIds = []
 paramIds = []
 
@@ -63,8 +61,8 @@ joint_name_to_hw_scaling[b"Index_MCP_Joint"]=1.0
 joint_name_to_hw_scaling[b"Middle_MCP_Joint"]=1.0
 joint_name_to_hw_scaling[b"Ring_MCP_Joint"]=1.0
 joint_name_to_hw_scaling[b"Pinky_MCP_Joint"]=1.0
-joint_name_to_hw_scaling[b"Metacarpal_Joint"]=0.25
-joint_name_to_hw_scaling[b"Thumb_Joint"]=0.25
+joint_name_to_hw_scaling[b"Metacarpal_Joint"]=0.4
+joint_name_to_hw_scaling[b"Thumb_Joint"]=0.3
 
 
 joint_index_to_name={}
@@ -141,15 +139,14 @@ for j in range(p.getNumJoints(robot)):
       paramIds.append(p.addUserDebugParameter(jointName.decode("utf-8"), 0, 1.92, 0))
 
 print("coupled_child_joints=",coupled_child_joints)
-p.setRealTimeSimulation(1)
 
 while (1):
-  p.setGravity(0, 0, p.readUserDebugParameter(gravId))
   for i in range(len(paramIds)):
     
     c = paramIds[i]
-    targetPos = p.readUserDebugParameter(c)
-    if i in joint_index_to_name:
+    try:
+     targetPos = p.readUserDebugParameter(c)
+     if i in joint_index_to_name:
       deg = int(math.degrees(targetPos))
       #print(joint_name_to_hw[joint_index_to_name[i]], deg)
 
@@ -165,15 +162,17 @@ while (1):
         response = ser.read(ser.inWaiting())  # Read all available data
         #print("Response:", response.decode(errors='ignore'))  # Decode and print response
       
-    finger_force= 100 #Newton
-    p.setJointMotorControl2(robot, jointIds[i], p.POSITION_CONTROL, targetPos, force=finger_force)
-    if jointIds[i] in coupled_parent_to_child:
-      distal_to_proximal_scaling=0.7 #you can also use a position-dependent non-linear function here
+     finger_force= 100 #Newton
+     p.setJointMotorControl2(robot, jointIds[i], p.POSITION_CONTROL, targetPos, force=finger_force)
+     if jointIds[i] in coupled_parent_to_child:
+      distal_to_proximal_scaling=0.65 #you can also use a position-dependent non-linear function here
       p.setJointMotorControl2(robot, coupled_parent_to_child[jointIds[i]], p.POSITION_CONTROL, targetPos*distal_to_proximal_scaling, force=finger_force)
-    
+    except(e):
+      print(e)
+ 
   contacts = p.getContactPoints()
   num_contacts = len(contacts)
   if (num_contacts):
   	print("num_contacts=", num_contacts)
-  
-  time.sleep(0.01)
+  p.stepSimulation() 
+  time.sleep(1./240.)
