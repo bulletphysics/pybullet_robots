@@ -6,7 +6,7 @@ import time
 
 import pybullet_data
 
-use_real_hardware = True 
+use_real_hardware = False
 if use_real_hardware:
   import serial
 
@@ -40,6 +40,8 @@ if allow_self_collision:
 
 robot = p.loadURDF("surge_v13_hand_right_textured_pybullet.urdf", useMaximalCoordinates=False, useFixedBase=True, flags=flags)
 #robot = p.loadURDF("surge_v13_hand_right_pybullet.urdf", useMaximalCoordinates=False, useFixedBase=True, flags=flags)
+#robot = p.loadURDF("surge_v13_hand_left_textured_pybullet.urdf", useMaximalCoordinates=False, useFixedBase=True, flags=flags)
+#robot = p.loadURDF("surge_v13_hand_left_pybullet.urdf", useMaximalCoordinates=False, useFixedBase=True, flags=flags)
 
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 jointIds = []
